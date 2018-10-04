@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/users")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -24,7 +25,7 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    @RequestMapping(value="/users", method = RequestMethod.GET)
+    @RequestMapping(value="", method = RequestMethod.GET)
     public ResponseEntity<Resources<UserResource>>  allUser(){
         final List<UserResource> collection =
                 userRepository.findAll().stream().map(UserResource::new).collect(Collectors.toList());
@@ -35,7 +36,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<UserResource> getbyId(@PathVariable(value = "id") final Long id){
         return userRepository
                 .findById(id)
@@ -44,12 +45,12 @@ public class UserController {
     }
 
 
-    @RequestMapping(value="/users/signup", method = RequestMethod.POST)
+    @RequestMapping(value="/signup", method = RequestMethod.POST)
     public User saveUser(@RequestBody UserDto user){
         return userService.save(user);
     }
 
-    @RequestMapping(value="/users/{userId}", method = RequestMethod.PUT)
+    @RequestMapping(value="/{userId}", method = RequestMethod.PUT)
     public User saveUser(@PathVariable Long userId,
                          @RequestBody UserDto user){
         return userRepository.findById(userId)

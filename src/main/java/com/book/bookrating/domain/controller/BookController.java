@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/book")
+@RequestMapping("/api/books")
 @Api(tags = "Book", description = "Book API")
 public class BookController {
 
@@ -61,7 +61,7 @@ public class BookController {
                 .orElseThrow(() -> new ResourceNotFoundException("users " + userId + "not found"));
     }
 
-    @GetMapping("/books/{id}")
+    @GetMapping("/{id}")
     @ApiOperation(value = "Find Book",notes = "Find the Book by ID")
     @ApiResponses(value = {
             @ApiResponse(code = 200,message = "Book found"),

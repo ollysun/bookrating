@@ -1,5 +1,6 @@
 package com.book.bookrating.domain.resources;
 
+import com.book.bookrating.domain.controller.BookController;
 import com.book.bookrating.domain.controller.UserController;
 import com.book.bookrating.domain.models.User;
 import org.springframework.hateoas.ResourceSupport;
@@ -17,7 +18,7 @@ public class UserResource extends ResourceSupport {
         this.user = user;
         final long id = user.getId();
         add(linkTo(UserController.class).withRel("user"));
-        add(ControllerLinkBuilder.linkTo(methodOn(UserController.class).getbyId(id)).withRel("users"));
-        add(ControllerLinkBuilder.linkTo(methodOn(UserController.class).getbyId(id)).withSelfRel());
+        //add(linkTo(methodOn(BookController.class).getAllBooksByUserId(id)).withRel("users"));
+        //add(linkTo(methodOn(UserController.class).getbyId(id)).withSelfRel());
     }
 }
