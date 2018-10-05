@@ -52,7 +52,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         //http.httpBasic();
         http
                 .authorizeRequests()
-                .antMatchers("/token/*", "/users/signup", "/swagger-ui.html").permitAll()
+                .antMatchers("/token/*", "/users/signup",
+                        "/swagger-ui.html",
+                        "/swagger-resources/**",
+                        "/v2/api-docs",
+                        "/swagger-resources",
+                        "/swagger-resources/configuration/ui",
+                        "/swagger-resources/configuration/security").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -63,7 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/v2/api-docs",
                 "/configuration/ui",
-                "/swagger-resources",
+                "/swagger-resources/**",
                 "/configuration/security",
                 "/swagger-ui.html",
                 "/webjars/**");

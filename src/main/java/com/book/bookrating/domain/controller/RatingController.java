@@ -8,6 +8,7 @@ import com.book.bookrating.domain.repositories.RatingRepository;
 import com.book.bookrating.domain.repositories.UserRepository;
 import com.book.bookrating.domain.resources.BookResource;
 import com.book.bookrating.domain.resources.RatingResource;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
@@ -19,7 +20,9 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RestController
 @RequestMapping("/api/ratings")
+@Api(tags = "Book", description = "Book API")
 public class RatingController {
 
     @Autowired
