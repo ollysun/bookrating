@@ -9,6 +9,9 @@ import com.book.bookrating.domain.repositories.UserRepository;
 import com.book.bookrating.domain.resources.BookResource;
 import com.book.bookrating.domain.resources.RatingResource;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
@@ -22,7 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ratings")
-@Api(tags = "Book", description = "Book API")
+@Api(tags = "Ratings", description = "Ratings API")
 public class RatingController {
 
     @Autowired
@@ -32,6 +35,11 @@ public class RatingController {
     RatingRepository ratingRepository;
 
     @GetMapping("/books/{bookId}/ratings")
+    @ApiOperation(value = "List all Ratings",notes = "Find the Rating by bookId")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,message = "Ratings  found"),
+            @ApiResponse(code = 404,message = "Ratings not found"),
+    })
     public ResponseEntity<Resources<RatingResource>> getAllRatingsByBookId(@PathVariable (value = "bookId") Long bookId) {
         final List<RatingResource> collection = getRatingsForBook(bookId);
         final Resources<RatingResource> resources = new Resources<>(collection);
@@ -49,10 +57,15 @@ public class RatingController {
                                         .stream()
                                         .map(RatingResource::new)
                                         .collect(Collectors.toList()))
-                .orElseThrow(() -> new ResourceNotFoundException("books " + bookId + "not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Books " + bookId + "not found"));
     }
 
     @GetMapping("/books/{bookId}/ratings/{ratingId}")
+    @ApiOperation(value = "Get rating by bookId and rat",notes = "Find the Book by bookId")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,message = "Ratings  found"),
+            @ApiResponse(code = 404,message = "Ratings not found"),
+    })
     public ResponseEntity<RatingResource> getByBookIdAndRatingId(
             @PathVariable final long bookId, @PathVariable final long ratingId) {
         return bookRepository
@@ -70,6 +83,11 @@ public class RatingController {
 
 
     @PostMapping("/books/{bookId}/rating")
+    @ApiOperation(value = "Create Rating",notes = "It permits to create a new rating")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201,message = "Ratings created successfully"),
+            @ApiResponse(code = 400,message = "Invalid request")
+    })
     public Rating createRating(
                              @PathVariable(value = "bookId") Long bookId,
                            @Valid @RequestBody Rating rating) {

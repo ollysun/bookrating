@@ -36,7 +36,7 @@ public class BookController {
 
 
     @GetMapping("/users/{userId}")
-    @ApiOperation(value = "Find Book",notes = "Find the Book by userId")
+    @ApiOperation(value = "List all Books by userId",notes = "Find the Book by userId")
     @ApiResponses(value = {
             @ApiResponse(code = 200,message = "Book  found"),
             @ApiResponse(code = 404,message = "Book not found"),
