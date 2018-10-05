@@ -52,7 +52,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         //http.httpBasic();
         http
                 .authorizeRequests()
-                .antMatchers("/token/*", "/users/signup",
+                .antMatchers("/token/*", "/api/users/signup",
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
