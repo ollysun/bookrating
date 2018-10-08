@@ -20,8 +20,8 @@ public class BookResource extends ResourceSupport {
         final long bookId = book.getId();
         final long userId = book.getUser().getId();
         add(new Link(String.valueOf(bookId), "bookId"));
-        add(linkTo(methodOn(BookController.class).getAllBooksByUserId(userId)).withRel("book"));
-        add(linkTo(methodOn(UserController.class).getbyId(userId)).withRel("book"));
-        add(linkTo(methodOn(BookController.class).getByUserIdAndBookId(userId, bookId)).withSelfRel());
+//        add(linkTo(methodOn(BookController.class).getAllBooksByUserId(userId)).withRel("book"));
+//        add(linkTo(methodOn(UserController.class).getbyId(userId)).withRel("book"));
+//        add(linkTo(methodOn(BookController.class).getByUserIdAndBookId(userId, bookId)).withSelfRel());
     }
 }

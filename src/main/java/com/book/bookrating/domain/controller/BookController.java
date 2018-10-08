@@ -1,6 +1,7 @@
 package com.book.bookrating.domain.controller;
 
 import com.book.bookrating.domain.models.User;
+import com.book.bookrating.domain.services.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -10,6 +11,8 @@ import com.book.bookrating.domain.models.Book;
 import com.book.bookrating.domain.repositories.BookRepository;
 import com.book.bookrating.domain.repositories.UserRepository;
 import com.book.bookrating.domain.resources.BookResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Resources;
@@ -21,6 +24,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,11 +32,17 @@ import java.util.stream.Collectors;
 @Api(tags = "Book", description = "Book API")
 public class BookController {
 
+    public static final Logger logger = LoggerFactory.getLogger(BookController.class);
+
+
     @Autowired
     BookRepository bookRepository;
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    UserService userService;
 
 
     @GetMapping("/users/{userId}")
@@ -41,25 +51,14 @@ public class BookController {
             @ApiResponse(code = 200,message = "Book  found"),
             @ApiResponse(code = 404,message = "Book not found"),
     })
-    public ResponseEntity<Resources<BookResource>> getAllBooksByUserId(@PathVariable (value = "userId") Long userId) {
-        final List<BookResource> collection = getBooksForUser(userId);
-        final Resources<BookResource> resources = new Resources<>(collection);
-        final String uriString = ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString();
-        resources.add(new Link(uriString, "self"));
-        return ResponseEntity.ok(resources);
+    public ResponseEntity<List<Book>> getAllBooksByUserId(@PathVariable (value = "userId") Long userId) {
+        List<Book> books = bookRepository.findByUserId(userId);
+        if (books.isEmpty()) {
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<List<Book>>(books, HttpStatus.OK);
     }
 
-    private List<BookResource> getBooksForUser(final long userId) {
-        return userRepository
-                .findById(userId)
-                .map(
-                        u ->
-                            u.getBooks()
-                                    .stream()
-                                    .map(BookResource::new)
-                                    .collect(Collectors.toList()))
-                .orElseThrow(() -> new ResourceNotFoundException("users " + userId + "not found"));
-    }
 
     @GetMapping("/{id}")
     @ApiOperation(value = "Find Book",notes = "Find the Book by ID")
@@ -67,34 +66,37 @@ public class BookController {
             @ApiResponse(code = 200,message = "Book found"),
             @ApiResponse(code = 404,message = "Book not found"),
     })
-    public ResponseEntity<BookResource> getByBookId(@PathVariable final long id) {
-        return bookRepository
-                .findById(id)
-                .map(p -> ResponseEntity.ok(new BookResource(p)))
-                .orElseThrow(() -> new ResourceNotFoundException("Books " + id + "not found"));
+    public ResponseEntity<?> getByBookId(@PathVariable final long id) {
+        Book books = bookRepository.findBookById(id);
+        if (books == null) {
+            logger.error("Book with id {} not found.", id);
+            return new ResponseEntity<>(new ResourceNotFoundException("BookId  " + id + "not found"),
+                    HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<Book>(books, HttpStatus.OK);
+
     }
 
 
-    @GetMapping("/users/{userId}/books/{bookId}")
-    @ApiOperation(value = "Find Book",notes = "Find the Book by userId and bookId")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200,message = "Book found"),
-            @ApiResponse(code = 404,message = "Book not found"),
-    })
-    public ResponseEntity<BookResource> getByUserIdAndBookId(
-            @PathVariable final long userId, @PathVariable final long bookId) {
-        return userRepository
-                .findById(userId)
-                .map(
-                        u ->
-                            u.getBooks()
-                                    .stream()
-                                    .filter(m -> m.getId().equals(bookId))
-                                    .findAny()
-                                    .map(m -> ResponseEntity.ok(new BookResource(m)))
-                                    .orElseThrow(() -> new ResourceNotFoundException("Books " + bookId + "not found")))
-                .orElseThrow(() -> new ResourceNotFoundException("users " + userId + "not found"));
-    }
+//    @GetMapping("/users/{userId}/books/{bookId}")
+//    @ApiOperation(value = "Find Book",notes = "Find the Book by userId and bookId")
+//    @ApiResponses(value = {
+//            @ApiResponse(code = 200,message = "Book found"),
+//            @ApiResponse(code = 404,message = "Book not found"),
+//    })
+//    public ResponseEntity<BookResource> getByUserIdAndBookId(
+//            @PathVariable final long userId, @PathVariable final long bookId) {
+//        return userRepository
+//                .findById(userId)
+//                .map(
+//                        u ->
+//                            u.getBooks()
+//                                    .stream()
+//                                    .filter(m -> m.getId().equals(bookId))
+//                                    .findAny()
+//                                    .map(m -> ResponseEntity.ok(new BookResource(m)))
+//                .orElseThrow(() -> new ResourceNotFoundException("users " + userId + "not found"));
+//    }
 
 
     @PostMapping("/users/{userId}/books")
@@ -103,12 +105,17 @@ public class BookController {
             @ApiResponse(code = 201,message = "Book created successfully"),
             @ApiResponse(code = 400,message = "Invalid request")
     })
-    public Book createBook(@PathVariable (value = "userId") Long userId,
+    public ResponseEntity<?> createBook(@PathVariable (value = "userId") Long userId,
                                  @Valid @RequestBody Book book) {
-        return userRepository.findById(userId).map(user -> {
-            book.setUser(user);
-            return bookRepository.save(book);
-        }).orElseThrow(() -> new ResourceNotFoundException("UserId " + userId + " not found"));
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            logger.error("Unable to update. User with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to find User with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+        book.setUser(user);
+        //bookRepository.save(book);
+        return new ResponseEntity<>(bookRepository.save(book), HttpStatus.CREATED);
     }
 
 
@@ -121,29 +128,32 @@ public class BookController {
             @ApiResponse(code = 404,message = "Book not found"),
             @ApiResponse(code = 400,message = "Invalid request")
     })
-    public ResponseEntity<BookResource> put(
+    public ResponseEntity<?> put(
             @PathVariable (value = "userId") Long userId,
             @PathVariable (value = "bookId") Long bookId,
             @RequestBody Book bookRequest) {
-        return userRepository
-                .findById(userId)
-                .map(
-                        u -> {
-                            final Book book = updateBook(u, bookId, bookRequest);
-                            final URI uri =
-                                    URI.create(ServletUriComponentsBuilder.fromCurrentRequest().toUriString());
-                            return ResponseEntity.created(uri).body(new BookResource(book));
-                        })
-                .orElseThrow(() -> new ResourceNotFoundException("Users " + userId + "Not found"));
+
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            logger.error("Unable to update. User with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to find User with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+        Book book = bookRepository.findBookById(bookId);
+        if (user == null) {
+            logger.error("Unable to update. Book with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to find Book with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+        book.setUser(user);
+        book.setTitle(bookRequest.getTitle());
+        book.setDescription(bookRequest.getTitle());
+        book.setName(bookRequest.getName());
+        bookRepository.save(book);
+        return new ResponseEntity<>(book, HttpStatus.OK);
+
+
     }
-
-    private Book updateBook(
-            final User user, final long id, final Book book) {
-        return bookRepository.save(
-                new Book(user, book.getName(), book.getTitle(), book.getDescription()));
-    }
-
-
 
 
     @DeleteMapping("/users/userId}/books/{bookId}")
@@ -155,21 +165,23 @@ public class BookController {
     })
     public ResponseEntity<?> deleteBook(@PathVariable (value = "userId") Long userId,
                                            @PathVariable (value = "bookId") Long bookId) {
-        return userRepository
-                .findById(userId)
-                .map(
-                        u ->
-                            u.getBooks()
-                                    .stream()
-                                    .filter(m -> m.getId().equals(bookId))
-                                    .findAny()
-                                    .map(
-                                            m -> {
-                                                bookRepository.delete(m);
-                                                return ResponseEntity.noContent().build();
-                                            })
-                                    .orElseThrow(() -> new ResourceNotFoundException("books " + bookId + "not found")))
-                .orElseThrow(() -> new ResourceNotFoundException("Users " + userId + "not found "));
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            logger.error("Unable to locate User with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to locate User with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+
+        Book book = bookRepository.findBookById(bookId);
+        if (book == null) {
+            logger.error("Unable to locate Book with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to locate Book with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+
+        bookRepository.delete(book);
+
+        return new ResponseEntity<User>(HttpStatus.NO_CONTENT);
     }
 
 }

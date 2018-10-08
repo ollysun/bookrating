@@ -52,7 +52,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         //http.httpBasic();
         http
                 .authorizeRequests()
-                .antMatchers("/token/generate-token", "/api/users/signup",
+                .antMatchers("/token/generate-token",
+                        "/api/users/signup",
                         "/swagger-ui.html",
                         "/swagger-resources/**",
                         "/v2/api-docs",
@@ -68,6 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/v2/api-docs",
+                "/token/generate-token",
                 "/configuration/ui",
                 "/swagger-resources/**",
                 "/configuration/security",

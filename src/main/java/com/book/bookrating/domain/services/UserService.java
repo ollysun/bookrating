@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Service(value = "userService")
 public class UserService implements IUserService, UserDetailsService {
@@ -25,9 +26,9 @@ public class UserService implements IUserService, UserDetailsService {
     private BCryptPasswordEncoder bcryptEncoder;
 
     @Override
-    public User save(UserDto user) {
+    public void save(User user) {
         User newUser = new User(user.getUsername(),user.getEmail(),bcryptEncoder.encode(user.getPassword()));
-        return userRepository.save(newUser);
+        userRepository.save(newUser);
     }
 
     @Override
@@ -51,6 +52,12 @@ public class UserService implements IUserService, UserDetailsService {
     public User findById(Long id) {
         return userRepository.findUserById(id);
     }
+
+    @Override
+    public boolean isUserExist(User user) {
+        return userRepository.existsByUsername(user.getUsername());
+    }
+
 
     private List<SimpleGrantedAuthority> getAuthority() {
         return Arrays.asList(new SimpleGrantedAuthority("ROLE_ADMIN"));

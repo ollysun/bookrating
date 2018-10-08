@@ -2,46 +2,45 @@ package com.book.bookrating.domain.controller;
 
 import com.book.bookrating.domain.exception.ResourceNotFoundException;
 import com.book.bookrating.domain.models.User;
-import com.book.bookrating.domain.models.UserDto;
 import com.book.bookrating.domain.repositories.UserRepository;
-import com.book.bookrating.domain.resources.UserResource;
 import com.book.bookrating.domain.services.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+    public static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
 
-    @RequestMapping(value="", method = RequestMethod.GET)
+    @RequestMapping(value="/", method = RequestMethod.GET)
     @ApiOperation(value = "List all users",notes = "List all users")
     @ApiResponses(value = {
             @ApiResponse(code = 200,message = "Users found"),
             @ApiResponse(code = 404,message = "Users not found")
     })
-    public ResponseEntity<Resources<UserResource>>  allUser(){
-        final List<UserResource> collection =
-                userRepository.findAll().stream().map(UserResource::new).collect(Collectors.toList());
-        final Resources<UserResource> resources = new Resources<>(collection);
-        final String uriString = ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString();
-        resources.add(new Link(uriString, "self"));
-        return ResponseEntity.ok(resources);
+    public ResponseEntity<List<User>> getAllUsers(){
+        List<User> users = userService.findAll();
+        if (users.isEmpty()) {
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<List<User>>(users, HttpStatus.OK);
     }
 
 
@@ -51,11 +50,15 @@ public class UserController {
             @ApiResponse(code = 200,message = "User found"),
             @ApiResponse(code = 404,message = "User not found"),
     })
-    public ResponseEntity<UserResource> getbyId(@PathVariable(value = "id") final Long id){
-        return userRepository
-                .findById(id)
-                .map(p -> ResponseEntity.ok(new UserResource(p)))
-                .orElseThrow(() -> new ResourceNotFoundException("BookId " + id + "not found"));
+    public ResponseEntity<?> getbyId(@PathVariable(value = "id") final Long id){
+        logger.info("Fetching User with id {}", id);
+        User user = userService.findById(id);
+        if (user == null) {
+            logger.error("User with id {} not found.", id);
+            return new ResponseEntity<>(new ResourceNotFoundException("UserId  " + id + "not found"),
+                    HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<User>(user, HttpStatus.OK);
     }
 
 
@@ -65,8 +68,19 @@ public class UserController {
             @ApiResponse(code = 201,message = "User created successfully"),
             @ApiResponse(code = 400,message = "Invalid request")
     })
-    public User saveUser(@RequestBody UserDto user){
-        return userService.save(user);
+    public ResponseEntity<?> saveUser(@RequestBody User user, UriComponentsBuilder ucBuilder){
+        logger.info("Creating User : {}", user);
+        if (userService.isUserExist(user)) {
+            logger.error("Unable to create. A User with name {} already exist", user.getUsername());
+            return new ResponseEntity<>(
+                    new ResourceNotFoundException("Unable to create. A User with name " + user.getUsername() + " already exist."), HttpStatus.CONFLICT);
+        }
+        userService.save(user);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(ucBuilder.path("/api/users/{id}").buildAndExpand(user.getId()).toUri());
+        return new ResponseEntity<String>(headers, HttpStatus.CREATED);
+        //return userService.save(user);
     }
 
     @RequestMapping(value="/{userId}", method = RequestMethod.PUT)
@@ -77,10 +91,21 @@ public class UserController {
             @ApiResponse(code = 404,message = "User not found"),
             @ApiResponse(code = 400,message = "Invalid request")
     })
-    public User saveUser(@PathVariable Long userId,
-                         @RequestBody UserDto user){
-        return userRepository.findById(userId)
-                .map(question -> userService.save(user)).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+    public ResponseEntity<?> updateUser(@PathVariable Long userId,
+                                   @RequestBody User user){
+
+        logger.info("Updating User with id {}", userId);
+
+        User currentUser = userService.findById(userId);
+
+        if (currentUser == null) {
+            logger.error("Unable to update. User with id {} not found.", userId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to upate. User with id " + userId + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+
+        userService.save(currentUser);
+        return new ResponseEntity<User>(currentUser, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -91,14 +116,17 @@ public class UserController {
             @ApiResponse(code = 404,message = "User not found")
     })
     public ResponseEntity<?> delete(@PathVariable("id") final long id) {
-        return userRepository
-                .findById(id)
-                .map(
-                        p -> {
-                            userRepository.deleteById(id);
-                            return ResponseEntity.noContent().build();
-                        })
-                .orElseThrow(() -> new ResourceNotFoundException("book id " + id + "not found"));
+
+        logger.info("Fetching & Deleting User with id {}", id);
+
+        User user = userService.findById(id);
+        if (user == null) {
+            logger.error("Unable to delete. User with id {} not found.", id);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to delete. User with id " + id + " not found."),
+                    HttpStatus.NOT_FOUND);
+        }
+        userService.delete(id);
+        return new ResponseEntity<User>(HttpStatus.NO_CONTENT);
     }
 
 
