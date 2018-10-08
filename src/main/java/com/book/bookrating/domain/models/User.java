@@ -10,12 +10,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Data
-public class User {
+public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -29,12 +30,19 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @JsonIgnore
+    @NotNull
+    @Size(max = 10000)
+    @Column(unique = true)
     private String password;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Book> books;
+
+    public User ()
+    {
+
+    }
 
     public User(String username, String email, String password) {
         this.username = username;

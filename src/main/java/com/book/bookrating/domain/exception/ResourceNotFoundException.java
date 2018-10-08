@@ -9,7 +9,7 @@ public class ResourceNotFoundException {
     }
 
     public ResourceNotFoundException(String message) {
-        this.errorMessage = errorMessage;
+        this.errorMessage = message;
 
     }
 

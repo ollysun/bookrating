@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -28,6 +29,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder bcryptEncoder;
 
     @RequestMapping(value="/", method = RequestMethod.GET)
     @ApiOperation(value = "List all users",notes = "List all users")
@@ -75,12 +79,10 @@ public class UserController {
             return new ResponseEntity<>(
                     new ResourceNotFoundException("Unable to create. A User with name " + user.getUsername() + " already exist."), HttpStatus.CONFLICT);
         }
-        userService.save(user);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(ucBuilder.path("/api/users/{id}").buildAndExpand(user.getId()).toUri());
-        return new ResponseEntity<String>(headers, HttpStatus.CREATED);
-        //return userService.save(user);
+        return new ResponseEntity<>(userService.save(user), HttpStatus.CREATED);
     }
 
     @RequestMapping(value="/{userId}", method = RequestMethod.PUT)
@@ -103,8 +105,8 @@ public class UserController {
             return new ResponseEntity<>(new ResourceNotFoundException("Unable to upate. User with id " + userId + " not found."),
                     HttpStatus.NOT_FOUND);
         }
-
-        userService.save(currentUser);
+        currentUser.setEmail(user.getEmail());
+        userRepository.save(currentUser);
         return new ResponseEntity<User>(currentUser, HttpStatus.OK);
     }
 
@@ -126,7 +128,7 @@ public class UserController {
                     HttpStatus.NOT_FOUND);
         }
         userService.delete(id);
-        return new ResponseEntity<User>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("User Deleted",HttpStatus.NO_CONTENT);
     }
 
 

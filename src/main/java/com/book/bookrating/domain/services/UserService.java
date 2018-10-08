@@ -26,9 +26,9 @@ public class UserService implements IUserService, UserDetailsService {
     private BCryptPasswordEncoder bcryptEncoder;
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
         User newUser = new User(user.getUsername(),user.getEmail(),bcryptEncoder.encode(user.getPassword()));
-        userRepository.save(newUser);
+        return userRepository.save(newUser);
     }
 
     @Override
@@ -64,8 +64,8 @@ public class UserService implements IUserService, UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(userId);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username);
         if(user == null){
             throw new UsernameNotFoundException("Invalid username or password.");
         }

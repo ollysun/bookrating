@@ -24,7 +24,7 @@ import java.util.List;
 @Api(tags = "Ratings", description = "Ratings API")
 public class RatingController {
 
-    public static final Logger logger = LoggerFactory.getLogger(BookController.class);
+    public static final Logger logger = LoggerFactory.getLogger(RatingController.class);
 
 
     @Autowired
@@ -40,11 +40,11 @@ public class RatingController {
             @ApiResponse(code = 404,message = "Ratings not found"),
     })
     public ResponseEntity<List<Rating>> getAllRatingsByBookId(@PathVariable (value = "bookId") Long bookId) {
-        List<Rating> ratings = ratingRepository.findAllRatingsByBookId(bookId);
-        if (ratings.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+        List<Rating> ratingsl = ratingRepository.findRatingsByBookId(bookId);
+        if (ratingsl.isEmpty()) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<List<Rating>>(ratings, HttpStatus.OK);
+        return new ResponseEntity<List<Rating>>(ratingsl, HttpStatus.OK);
     }
 
 
@@ -60,13 +60,12 @@ public class RatingController {
 
         Book book = bookRepository.findBookById(bookId);
         if (book == null) {
-            logger.error("Unable to create Book with id {} not found.", bookId);
-            return new ResponseEntity<>(new ResourceNotFoundException("Unable to find User with id "
+            logger.error("Unable to create rating with book id {} not found.", bookId);
+            return new ResponseEntity<>(new ResourceNotFoundException("Unable to find Book with id "
                     + bookId + " not found."),
                     HttpStatus.NOT_FOUND);
         }
         rating.setBook(book);
-        ratingRepository.save(rating);
-        return new ResponseEntity<>(bookRepository.save(book), HttpStatus.CREATED);
+        return new ResponseEntity<>(ratingRepository.save(rating), HttpStatus.CREATED);
     }
 }

@@ -6,25 +6,25 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @Entity
 @Table(name = "Book")
-public class Book {
+public class Book implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
-    @JsonIdentityInfo(generator=ObjectIdGenerators.PropertyGenerator.class, property="id")
-    private User book;
+    private User user;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "rating", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<Rating> ratings;
 
     public List<Rating> getRatings() {
@@ -46,15 +46,15 @@ public class Book {
     }
 
     public User getUser() {
-        return book;
+        return user;
     }
 
     public void setUser(User book) {
-        this.book = book;
+        this.user = book;
     }
 
-    public Book(User user, String name, String title, String description) {
-        this.book = user;
+    public Book() {}
+    public Book(String name, String title, String description) {
         this.name = name;
         this.title = title;
         this.description = description;
