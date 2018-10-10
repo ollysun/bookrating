@@ -25,6 +25,9 @@ public class UserService implements IUserService, UserDetailsService {
     @Autowired
     private BCryptPasswordEncoder bcryptEncoder;
 
+    public UserService()
+    { }
+
     @Override
     public User save(User user) {
         User newUser = new User(user.getUsername(),user.getEmail(),bcryptEncoder.encode(user.getPassword()));

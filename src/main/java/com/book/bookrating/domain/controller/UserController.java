@@ -44,7 +44,7 @@ public class UserController {
         if (users.isEmpty()) {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<List<User>>(users, HttpStatus.OK);
+        return ResponseEntity.ok(users);
     }
 
 
@@ -54,15 +54,16 @@ public class UserController {
             @ApiResponse(code = 200,message = "User found"),
             @ApiResponse(code = 404,message = "User not found"),
     })
-    public ResponseEntity<?> getbyId(@PathVariable(value = "id") final Long id){
+    public ResponseEntity getbyId(@PathVariable(value = "id") final Long id){
         logger.info("Fetching User with id {}", id);
         User user = userService.findById(id);
         if (user == null) {
             logger.error("User with id {} not found.", id);
-            return new ResponseEntity<>(new ResourceNotFoundException("UserId  " + id + "not found"),
-                    HttpStatus.NOT_FOUND);
+//            return new ResponseEntity<>(new ResourceNotFoundException("UserId  " + id + "not found"),
+//                    HttpStatus.NOT_FOUND);
+            return ResponseEntity.badRequest().build();
         }
-        return new ResponseEntity<User>(user, HttpStatus.OK);
+        return ResponseEntity.ok(user);
     }
 
 
@@ -82,7 +83,7 @@ public class UserController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(ucBuilder.path("/api/users/{id}").buildAndExpand(user.getId()).toUri());
-        return new ResponseEntity<>(userService.save(user), HttpStatus.CREATED);
+        return new ResponseEntity<>(userService.save(user), HttpStatus.OK);
     }
 
     @RequestMapping(value="/{userId}", method = RequestMethod.PUT)
