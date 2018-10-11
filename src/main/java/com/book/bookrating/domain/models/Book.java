@@ -7,6 +7,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -25,7 +26,7 @@ public class Book implements Serializable {
     private User user;
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
-    private List<Rating> ratings;
+    private List<Rating> ratings = new ArrayList<>();
 
     public List<Rating> getRatings() {
         return ratings;
@@ -34,6 +35,17 @@ public class Book implements Serializable {
     public void setRatings(List<Rating> ratings) {
         this.ratings = ratings;
     }
+
+    public void addRating(Rating rating) {
+        ratings.add(rating);
+        rating.setBook(this);
+    }
+
+    public void removeRating(Rating rating) {
+        ratings.remove(rating);
+        rating.setBook(null);
+    }
+
 
     private String name;
 
