@@ -59,14 +59,14 @@ public class BookController {
             @ApiResponse(code = 200,message = "Book found"),
             @ApiResponse(code = 404,message = "Book not found"),
     })
-    public ResponseEntity<?> getByBookId(@PathVariable final long id) {
+    public ResponseEntity getByBookId(@PathVariable(value = "id") final Long id) {
         Book books = bookRepository.findBookById(id);
         if (books == null) {
             logger.error("Book with id {} not found.", id);
             return new ResponseEntity<>(new ResourceNotFoundException("BookId  " + id + "not found"),
                     HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<Book>(books, HttpStatus.OK);
+        return ResponseEntity.ok(books);
 
     }
 

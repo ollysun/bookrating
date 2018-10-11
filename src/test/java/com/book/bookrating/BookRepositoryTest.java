@@ -30,7 +30,6 @@ public class BookRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-
     @Autowired
     private BookRepository bookRepository;
 

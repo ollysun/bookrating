@@ -80,41 +80,28 @@ public class UserControllerITtest {
     private static final DateTimeFormatter formatter =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    private static String BASE_PATH = "http://localhost/api/users";
+    private static String BASE_PATH = "/api/users";
     private static final long ID = 25;
     private User user;
 
     @Before
     public void setupMockMvc() {
         mockMvc = webAppContextSetup(context).build();
-        setupUser();
-    }
-
-
-    private void setupUser() {
-        user = new User();
-        user.setId(ID);
-        user.setUsername("moses");
-        user.setEmail("ollysun@gmail.com");
+        user = new User("moses","ollysun@gmail.com",bcryptEncoder.encode("password"));
+        user.setId(1L);
     }
 
     @Test
     public void getUserByIdNotFound() throws Exception {
-        User usern = new User("moses","ollysun@gmail.com",bcryptEncoder.encode("password"));
-        given(userController.getbyId(usern.getId())).willReturn(ResponseEntity.ok(usern));
-        mockMvc.perform(get(BASE_PATH + "/getbyId/" + usern.getId())
+        given(userController.getbyId(1L)).willReturn(ResponseEntity.ok(user));
+        mockMvc.perform(get(BASE_PATH + "/getbyId/" + 1L)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void createNewUser() throws Exception {
-        User usern = new User();
-        usern.setUsername("moses");
-        user.setPassword(bcryptEncoder.encode("password"));
-        usern.setEmail("ollysun@gmail.com");
-
-        mockMvc.perform(post("/api/users/signup")
+        mockMvc.perform(post(BASE_PATH + "/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(user)))
                 .andExpect(status().isOk());
@@ -127,13 +114,9 @@ public class UserControllerITtest {
         user1.setPassword(bcryptEncoder.encode("password"));
         user1.setEmail("ollysun@gmail.com");
 
-        User user2 = new User();
-        user2.setUsername("moses");
-        user2.setPassword(bcryptEncoder.encode("password"));
-        user2.setEmail("ollysun@gmail.com");
-        List<User> addnew = Arrays.asList(user1,user2);
+        List<User> addnew = Arrays.asList(user,user1);
         given(userController.getAllUsers()).willReturn((ResponseEntity.ok(addnew)));
-        mockMvc.perform(get("/api/users/"))
+        mockMvc.perform(get(BASE_PATH + "/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", hasSize(addnew.size())));
     }
