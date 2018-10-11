@@ -25,7 +25,7 @@ import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTest
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
-public class UserRepositoryTests {
+public class UserRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

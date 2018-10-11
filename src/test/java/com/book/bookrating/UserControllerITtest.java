@@ -69,7 +69,6 @@ public class UserControllerITtest {
     private ObjectMapper mapper;
 
     @MockBean
-    //private UserRepository userRepository;
     private UserController userController;
 
     @Autowired
@@ -82,7 +81,6 @@ public class UserControllerITtest {
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private static String BASE_PATH = "http://localhost/api/users";
-    private static String MEMBERSHIPS_PATH = "/memberships";
     private static final long ID = 25;
     private User user;
 
@@ -92,16 +90,11 @@ public class UserControllerITtest {
         setupUser();
     }
 
-//    @Test
-//    public void contextLoads() {
-//        assertEquals(0, userRepository.count());
-//    }
 
     private void setupUser() {
         user = new User();
         user.setId(ID);
         user.setUsername("moses");
-        //user.setPassword(bcryptEncoder.encode("password"));
         user.setEmail("ollysun@gmail.com");
     }
 
@@ -112,9 +105,6 @@ public class UserControllerITtest {
         mockMvc.perform(get(BASE_PATH + "/getbyId/" + usern.getId())
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
-//                .andExpect(content().json("{'name':'moses', 'email':'ollysun@gmail.com'}"))
-//                .andExpect(jsonPath("$.username").value(usern.getUsername()))
-//                .andExpect(jsonPath("$.email").value(usern.getEmail()));
     }
 
     @Test
