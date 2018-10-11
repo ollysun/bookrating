@@ -55,7 +55,7 @@ public class UserRepositoryTests {
     }
 
     @Test
-    public void should_delete_all_customer() {
+    public void should_delete_all_user() {
         entityManager.persist(new User("Jack", "Smith@gmail.com","password"));
         entityManager.persist(new User("Adam", "Johnson@gmail.com", "password"));
 
@@ -65,7 +65,7 @@ public class UserRepositoryTests {
     }
 
     @Test
-    public void whenFindAllById() {
+    public void whenFindUserById() {
         //given
         User user1 = new User();
         user1.setUsername("moses");
