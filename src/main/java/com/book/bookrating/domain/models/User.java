@@ -11,6 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,7 +38,7 @@ public class User implements Serializable {
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Book> books;
+    private List<Book> books  = new ArrayList<>();
 
     public User ()
     {
@@ -88,5 +89,15 @@ public class User implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void addBook(Book book) {
+        books.add(book);
+        book.setUser(this);
+    }
+
+    public void removeBook(Book book) {
+        books.remove(book);
+        book.setUser(null);
     }
 }
