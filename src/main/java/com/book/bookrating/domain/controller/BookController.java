@@ -47,7 +47,8 @@ public class BookController {
     public ResponseEntity<List<Book>> getAllBooksByUserId(@PathVariable (value = "userId") Long userId) {
         List<Book> books = bookRepository.findBooksByUserId(userId);
         if (books.isEmpty()) {
-            return new ResponseEntity("UserID " + userId + "cannot be found" ,HttpStatus.NOT_FOUND);
+            String body = "UserID " + userId + "cannot be found";
+			return new ResponseEntity(body ,HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<List<Book>>(books, HttpStatus.OK);
     }
@@ -111,7 +112,7 @@ public class BookController {
                     HttpStatus.NOT_FOUND);
         }
         Book book = bookRepository.findBookById(bookId);
-        if (user == null) {
+        if (book == null) {
             logger.error("Unable to update. Book with id {} not found.", userId);
             return new ResponseEntity<>(new ResourceNotFoundException("Unable to find Book with id " + userId + " not found."),
                     HttpStatus.NOT_FOUND);
